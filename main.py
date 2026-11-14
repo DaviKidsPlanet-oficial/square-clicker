@@ -6,9 +6,20 @@ import time
 import random
 
 def resource_path(nome):
-    # Works both when running the .py and inside the PyInstaller bundle
-    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base, nome)
+    # Looks for the file next to the .exe/.app (or next to the .py), then inside the PyInstaller bundle
+    if getattr(sys, "frozen", False):
+        pastas = [os.path.dirname(sys.executable)]
+        if sys.platform == "darwin":
+            # inside Square Clicker.app/Contents/MacOS -> also try Contents/Resources
+            pastas.append(os.path.join(os.path.dirname(sys.executable), "..", "Resources"))
+        pastas.append(getattr(sys, "_MEIPASS", ""))
+    else:
+        pastas = [os.path.dirname(os.path.abspath(__file__))]
+    for pasta in pastas:
+        caminho = os.path.join(pasta, nome)
+        if pasta and os.path.exists(caminho):
+            return caminho
+    return os.path.join(pastas[0], nome)
 
 #Setup
 pygame.init()
@@ -16,8 +27,11 @@ Porcentagem_pronto = 10
 print(f"Loading: {Porcentagem_pronto:.2f}%") # pyright: ignore[reportUndefinedVariable]
 
 #Square clicker icon
-icon_surface = pygame.image.load(resource_path('Icone_jogo.png'))
-pygame.display.set_icon(icon_surface)
+try:
+    icon_surface = pygame.image.load(resource_path('Icone_jogo.png'))
+    pygame.display.set_icon(icon_surface)
+except (pygame.error, FileNotFoundError):
+    pass  # game still runs without the icon
 Porcentagem_pronto += 10
 print(f"Loading: {Porcentagem_pronto:.2f}%")
 
