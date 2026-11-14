@@ -3,6 +3,7 @@ import os
 import sys
 import pygame
 import time
+import random
 
 def resource_path(nome):
     # Works both when running the .py and inside the PyInstaller bundle
@@ -35,14 +36,16 @@ TEXTOS = {
     "en": {
         "points": "Points", "pts": "points", "x2": "2X Points", "auto": "Automation",
         "per_s": "points/s", "per_click": "points/click",
-        "press": "Press 'E' to buy 1st upgrade and 'D' for 2nd", "press_x": 200,
+        "press": "Press 'E' for 1st upgrade, 'D' for 2nd and 'G' for 3rd", "press_x": 200,
+        "gold": "Golden Click", "gold_msg": "Golden click!", "max": "MAX", "lvl": "Lv",
         "contrib": "Automation contributed {p} points after {s} seconds.",
         "bye": "Goodbye!",
     },
     "pt": {
         "points": "Pontos", "pts": "pontos", "x2": "2X Pontos", "auto": "Automação",
         "per_s": "pontos/s", "per_click": "pontos/click",
-        "press": "Aperte 'E' para comprar a primeira melhoria e 'D' para a segunda", "press_x": 250,
+        "press": "Aperte 'E' para a 1ª melhoria, 'D' para a 2ª e 'G' para a 3ª", "press_x": 250,
+        "gold": "Clique Dourado", "gold_msg": "Clique dourado!", "max": "MÁX", "lvl": "Nv",
         "contrib": "Automação contribuiu com {p} pontos depois de {s} segundos.",
         "bye": "Tchau!",
     },
@@ -139,6 +142,15 @@ Segundos_automacao = 12
 Mostrar_contribuição = False
 Porcentagem_pronto += 10
 print(f"Loading: {Porcentagem_pronto:.2f}%")
+#Item 3 (Golden Click)
+Nivel_dourado = 0
+Nivel_dourado_max = 10
+Chance_por_nivel = 5          # % per level (max 10 x 5 = 50%)
+Preço_dourado = 200
+Dourado = (255,200,0)
+Dourado_loja = (255,140,0)
+Dourado_ate = 0               # time when the golden color/message ends
+Dourado_duracao = 5           # seconds
 #Points/second variables
 Pontos_por_S = 0
 texto_superficie_porS = fonte_2Xpontos.render(f"{Pontos_por_S} {T['per_s']}    {Pontos_por_click} {T['per_click']}", True, (255, 255, 255), (0,0,0))
@@ -240,6 +252,9 @@ while rodando:
         if t >= 1.0:
             upgrade_anim = False
 
+    if time.time() < Dourado_ate and not upgrade_anim:
+        player_color = Dourado
+
     player_surf = pygame.Surface((Largura_altura, Largura_altura), pygame.SRCALPHA)
     player_surf.fill(player_color)
     rotated = pygame.transform.rotate(player_surf, rotation_angle)
@@ -248,6 +263,7 @@ while rodando:
 
     pygame.draw.circle(tela, Amarelo, (X_circulo, Y_circulo), Raio, 0)
     pygame.draw.circle(tela, Azul, (X_circulo, Y_circulo+110), Raio, 0)
+    pygame.draw.circle(tela, Dourado_loja, (X_circulo, Y_circulo+220), Raio, 0)
 
     
     tela.blit(texto_superficie, texto_rect)
@@ -305,6 +321,19 @@ while rodando:
     tela.blit(texto_superficie_automacao, texto_rect_automacao)
     texto_superficie_automacao = fonte_2Xpontos.render(T["auto"], True, (255, 255, 255), (0,0,0))
     texto_rect_automacao = texto_superficie_automacao.get_rect(center=(X_circulo, Y_circulo + 100))
+    #Golden Click (Item 3)
+    t_nome = fonte_2Xpontos.render(T["gold"], True, Branco, Preto)
+    tela.blit(t_nome, t_nome.get_rect(center=(X_circulo, Y_circulo + 210)))
+    if Nivel_dourado >= Nivel_dourado_max:
+        t_preco = fonte_2Xpontos.render(T["max"], True, Branco, Preto)
+    else:
+        t_preco = fonte_2Xpontos.render(f"{int(Preço_dourado)} {T['pts']}", True, Branco, Preto)
+    tela.blit(t_preco, t_preco.get_rect(center=(X_circulo, Y_circulo + 230)))
+    t_nivel = fonte_2Xpontos.render(f"{T['lvl']} {Nivel_dourado}/{Nivel_dourado_max} ({Nivel_dourado * Chance_por_nivel}%)", True, Branco, Preto)
+    tela.blit(t_nivel, t_nivel.get_rect(center=(X_circulo, Y_circulo + 275)))
+    if time.time() < Dourado_ate:
+        t_msg = fonte.render(T["gold_msg"], True, Dourado, Preto)
+        tela.blit(t_msg, t_msg.get_rect(center=(330, 150)))
     
     X_mouse, Y_mouse = pygame.mouse.get_pos()
     Mouse = pygame.Rect(X_mouse, Y_mouse, 5, 10)
@@ -314,11 +343,22 @@ while rodando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
+        if evento.type == pygame.KEYDOWN and evento.key == pygame.K_g:
+            if Nivel_dourado < Nivel_dourado_max and Pontos >= Preço_dourado:
+                Pontos -= Preço_dourado
+                Nivel_dourado += 1
+                Preço_dourado = int(200 * 2 ** Nivel_dourado)
+                upgrade_anim = True
+                upgrade_anim_start = time.time()
+                upgrade_anim_color = Dourado_loja
         if evento.type == pygame.MOUSEBUTTONDOWN:
             if Mouse.colliderect(Hitbox_personagem):
                 if not Largura_altura >= 300:
                     Largura_altura += 5
                     Pontos = Pontos + Pontos_por_click
+                    if random.random() * 100 < Nivel_dourado * Chance_por_nivel:
+                        Pontos = Pontos + Pontos_por_click   # golden click = double points
+                        Dourado_ate = time.time() + Dourado_duracao
             if not Largura_altura <= 50:
                 Largura_altura -= 5
 
@@ -352,4 +392,4 @@ while rodando:
         tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
     else:
         Cor_personagem = Verde
-print(T["bye"])
+print(T["bye"])

@@ -4,6 +4,7 @@ Jogo clicker feito com Pygame. Clique no quadrado para ganhar pontos e compre up
 
 - **E** → 2X Points
 - **D** → Automation
+- **G** → Golden Click / Clique Dourado (10 levels, +5% chance per level of a golden click: double points, golden square and message for 5s)
 
 ## Rodar direto
 
