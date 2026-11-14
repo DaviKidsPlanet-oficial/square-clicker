@@ -1,0 +1,44 @@
+name: Build macOS Installer
+
+on:
+  workflow_dispatch: # Lets you trigger the build manually from GitHub
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Build .app bundle with PyInstaller
+        run: |
+          pyinstaller --windowed --noconfirm \
+            --name "Square Clicker" \
+            --icon Icone_jogo.icns \
+            --add-data "Icone_jogo.png:." \
+            main.py
+
+      - name: Package into .dmg installer
+        run: |
+          mkdir -p dist/dmg
+          cp -r "dist/Square Clicker.app" dist/dmg/
+          ln -s /Applications dist/dmg/Applications
+          hdiutil create -volname "Square Clicker Installer" -srcfolder dist/dmg -ov -format UDZO "SquareClicker.dmg"
+
+      - name: Upload macOS Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: SquareClicker-macOS
+          path: SquareClicker.dmg
