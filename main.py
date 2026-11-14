@@ -33,8 +33,8 @@ print(f"Loading: {Porcentagem_pronto:.2f}%")
 #Language selection
 TEXTOS = {
     "en": {
-        "points": "Points", "pts": "points", "x2": T["x2"], "auto": "Automation",
-        "per_s": "{T['per_s']}", "per_click": "{T['per_click']}",
+        "points": "Points", "pts": "points", "x2": "2X Points", "auto": "Automation",
+        "per_s": "points/s", "per_click": "points/click",
         "press": "Press 'E' to buy 1st upgrade and 'D' for 2nd", "press_x": 200,
         "contrib": "Automation contributed {p} points after {s} seconds.",
         "bye": "Goodbye!",
