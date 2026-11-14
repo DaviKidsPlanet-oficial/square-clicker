@@ -30,6 +30,69 @@ Azul = (0,0,255)
 Porcentagem_pronto += 10
 print(f"Loading: {Porcentagem_pronto:.2f}%")
 
+#Language selection
+TEXTOS = {
+    "en": {
+        "points": "Points", "pts": "points", "x2": T["x2"], "auto": "Automation",
+        "per_s": "{T['per_s']}", "per_click": "{T['per_click']}",
+        "press": "Press 'E' to buy 1st upgrade and 'D' for 2nd", "press_x": 200,
+        "contrib": "Automation contributed {p} points after {s} seconds.",
+        "bye": "Goodbye!",
+    },
+    "pt": {
+        "points": "Pontos", "pts": "pontos", "x2": "2X Pontos", "auto": "Automação",
+        "per_s": "pontos/s", "per_click": "pontos/click",
+        "press": "Aperte 'E' para comprar a primeira melhoria e 'D' para a segunda", "press_x": 250,
+        "contrib": "Automação contribuiu com {p} pontos depois de {s} segundos.",
+        "bye": "Tchau!",
+    },
+}
+
+def escolher_idioma():
+    tela_menu = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Square Clicker")
+    f_titulo = pygame.font.SysFont("Arial", 48)
+    f_texto = pygame.font.SysFont("Arial", 24)
+    f_botao = pygame.font.SysFont("Arial", 32)
+    botoes = [
+        ("en", "English", pygame.Rect(250, 260, 300, 70)),
+        ("pt", "Português", pygame.Rect(250, 360, 300, 70)),
+    ]
+    clock_menu = pygame.time.Clock()
+    while True:
+        mouse = pygame.mouse.get_pos()
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if ev.type == pygame.KEYDOWN:
+                if ev.key in (pygame.K_1, pygame.K_KP1, pygame.K_e):
+                    return "en"
+                if ev.key in (pygame.K_2, pygame.K_KP2, pygame.K_p):
+                    return "pt"
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+                for codigo, _, rect in botoes:
+                    if rect.collidepoint(ev.pos):
+                        return codigo
+        tela_menu.fill(Preto)
+        titulo = f_titulo.render("Square Clicker", True, Verde)
+        tela_menu.blit(titulo, titulo.get_rect(center=(400, 120)))
+        sub = f_texto.render("Choose your language / Escolha o idioma", True, Branco)
+        tela_menu.blit(sub, sub.get_rect(center=(400, 200)))
+        for _, nome, rect in botoes:
+            cor = (70, 70, 70) if rect.collidepoint(mouse) else (40, 40, 40)
+            pygame.draw.rect(tela_menu, cor, rect, border_radius=8)
+            pygame.draw.rect(tela_menu, Branco, rect, 2, border_radius=8)
+            txt = f_botao.render(nome, True, Branco)
+            tela_menu.blit(txt, txt.get_rect(center=rect.center))
+        dica = f_texto.render("1 / 2", True, (150, 150, 150))
+        tela_menu.blit(dica, dica.get_rect(center=(400, 480)))
+        pygame.display.flip()
+        clock_menu.tick(60)
+
+IDIOMA = escolher_idioma()
+T = TEXTOS[IDIOMA]
+
 #Character variables
 X = 375
 Y = 250
@@ -46,7 +109,7 @@ tela = pygame.display.set_mode((600, 400))
 pygame.display.set_caption("Square Clicker")
 clock = pygame.time.Clock()
 fonte = pygame.font.SysFont("Arial", 36)
-texto_superficie = fonte.render(f"Points: {Pontos}", True, (255, 255, 255))
+texto_superficie = fonte.render(f"{T['points']}: {Pontos}", True, (255, 255, 255))
 texto_rect = texto_superficie.get_rect(center=(80,20))
 Pontos_por_click = 1
 Pontos_Antes = 0
@@ -55,7 +118,7 @@ print(f"Loading: {Porcentagem_pronto:.2f}%")
 #Shop variables
 Hitbox_renda_2x = pygame.draw.circle(tela, Amarelo,(X_circulo, Y_circulo), Raio)
 fonte_2Xpontos = pygame.font.SysFont("Arial", 16)
-texto_superficie_2Xpontos = fonte_2Xpontos.render("2X Points", True, (255, 255, 255))
+texto_superficie_2Xpontos = fonte_2Xpontos.render(T["x2"], True, (255, 255, 255))
 texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(730, 85))
 Vezes_compradas_2x = 0
 Preço_2x = int(50 * (Vezes_compradas_2x +1))
@@ -66,10 +129,10 @@ Hitbox_automação = pygame.draw.circle(tela, Azul,(X_circulo, Y_circulo + 100),
 Vezes_compradas_automacao = 0
 Preço_automacao = 100 * (Vezes_compradas_automacao + 1)
 Automacao = False
-texto_superficie_automacao = fonte_2Xpontos.render(f"{Preço_automacao} points", True, (255, 255, 255), (0,0,0))
+texto_superficie_automacao = fonte_2Xpontos.render(f"{Preço_automacao} {T['pts']}", True, (255, 255, 255), (0,0,0))
 texto_rect_automacao = texto_superficie_automacao.get_rect(center=(X_circulo, Y_circulo-130))
 tela.blit(texto_superficie_automacao, texto_rect_automacao)
-texto_superficie_automacao = fonte_2Xpontos.render("Automation", True, (255, 255, 255), (0,0,0))
+texto_superficie_automacao = fonte_2Xpontos.render(T["auto"], True, (255, 255, 255), (0,0,0))
 texto_rect_automacao = texto_superficie_automacao.get_rect(center=(X_circulo, Y_circulo - 110))
 Pontos_automação = 0.8
 Segundos_automacao = 12
@@ -78,7 +141,7 @@ Porcentagem_pronto += 10
 print(f"Loading: {Porcentagem_pronto:.2f}%")
 #Points/second variables
 Pontos_por_S = 0
-texto_superficie_porS = fonte_2Xpontos.render(f"{Pontos_por_S} points/s    {Pontos_por_click} points/click", True, (255, 255, 255), (0,0,0))
+texto_superficie_porS = fonte_2Xpontos.render(f"{Pontos_por_S} {T['per_s']}    {Pontos_por_click} {T['per_click']}", True, (255, 255, 255), (0,0,0))
 texto_rect_porS = texto_superficie_porS.get_rect(center=(200,80))
 Pontos_por_S_Antes = 0
 Porcentagem_pronto += 10
@@ -189,58 +252,58 @@ while rodando:
     
     tela.blit(texto_superficie, texto_rect)
     if Pontos > 1000000000000000000000:
-        texto_superficie = fonte.render(f"Points: {Pontos/1000000000000000:.2f}Qua", True, (255, 255, 255))
+        texto_superficie = fonte.render(f"{T['points']}: {Pontos/1000000000000000:.2f}Qua", True, (255, 255, 255))
     if Pontos < 1000000000000000000 and Pontos > 1000000000000000:
-        texto_superficie = fonte.render(f"Points: {Pontos/1000000000000:.2f}T", True, (255, 255, 255))
+        texto_superficie = fonte.render(f"{T['points']}: {Pontos/1000000000000:.2f}T", True, (255, 255, 255))
     if Pontos < 1000000000000000 and Pontos > 1000000000000:
-        texto_superficie = fonte.render(f"Points: {Pontos/1000000000:.2f}B", True, (255, 255, 255))
+        texto_superficie = fonte.render(f"{T['points']}: {Pontos/1000000000:.2f}B", True, (255, 255, 255))
     texto_rect = texto_superficie.get_rect(center=(150,20))
     if Pontos < 1000000000000 and Pontos > 1000000:
-        texto_superficie = fonte.render(f"Points: {Pontos/1000000:.2f}M", True, (255, 255, 255))
+        texto_superficie = fonte.render(f"{T['points']}: {Pontos/1000000:.2f}M", True, (255, 255, 255))
     else: 
-        texto_superficie = fonte.render(f"Points: {int(Pontos)}", True, (255, 255, 255))
+        texto_superficie = fonte.render(f"{T['points']}: {int(Pontos)}", True, (255, 255, 255))
     
 
     tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
-    texto_superficie_2Xpontos = fonte_2Xpontos.render("2X Points", True, (255, 255, 255), (0,0,0))
+    texto_superficie_2Xpontos = fonte_2Xpontos.render(T["x2"], True, (255, 255, 255), (0,0,0))
     texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(X_circulo, Y_circulo - 10))
     tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
     if Preço_2x > 1000000000000:
-        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{Preço_2x/1000000000:.2f}B points", True, (0, 0, 0))
+        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{Preço_2x/1000000000:.2f}B {T['pts']}", True, (0, 0, 0))
     texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(150,20))
     if Preço_2x < 1000000000000 and Preço_2x > 1000000:
-        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{Preço_2x/1000000:.2f}M points", True, (0, 0, 0))
+        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{Preço_2x/1000000:.2f}M {T['pts']}", True, (0, 0, 0))
     else: 
-        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{int(Preço_2x)} points", True, (255, 255, 255), (0,0,0))
+        texto_superficie_2Xpontos = fonte_2Xpontos.render(f"{int(Preço_2x)} {T['pts']}", True, (255, 255, 255), (0,0,0))
     texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(X_circulo, Y_circulo+10))
     tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
-    texto_superficie_2Xpontos = fonte_2Xpontos.render("Press 'E' to buy 1st upgrade and 'D' for 2nd", True, (255, 255, 255), (0,0,0))
-    texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(200,50))
+    texto_superficie_2Xpontos = fonte_2Xpontos.render(T["press"], True, (255, 255, 255), (0,0,0))
+    texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(T["press_x"],50))
     tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
     #Points/s
     
     tela.blit(texto_superficie_porS, texto_rect_porS)
     if Pontos_por_S_Antes > 1000000000000:
-        texto_superficie_porS = fonte_2Xpontos.render(f"{(int(Pontos_por_S_Antes)/1000000000):.2f}B points/s    {Pontos_por_click} points/click", True, (255, 255, 255))
+        texto_superficie_porS = fonte_2Xpontos.render(f"{(int(Pontos_por_S_Antes)/1000000000):.2f}B {T['per_s']}    {Pontos_por_click} {T['per_click']}", True, (255, 255, 255))
     if Pontos_por_S_Antes < 1000000000000 and Pontos_por_S_Antes > 1000000:
-        texto_superficie_porS = fonte_2Xpontos.render(f"{Pontos_por_S_Antes/1000000:.2f}M points/s   {Pontos_por_click} points/click", True, (255, 255, 255))
+        texto_superficie_porS = fonte_2Xpontos.render(f"{Pontos_por_S_Antes/1000000:.2f}M {T['per_s']}   {Pontos_por_click} {T['per_click']}", True, (255, 255, 255))
     if Pontos_por_S_Antes < 1000000 and Pontos_por_S_Antes > 0: 
-        texto_superficie_porS = fonte_2Xpontos.render(f"{int(Pontos_por_S_Antes)} points/s  {Pontos_por_click} points/click", True, (255, 255, 255), (0,0,0))
+        texto_superficie_porS = fonte_2Xpontos.render(f"{int(Pontos_por_S_Antes)} {T['per_s']}  {Pontos_por_click} {T['per_click']}", True, (255, 255, 255), (0,0,0))
     if Pontos_por_S_Antes <= 0:
-         texto_superficie_porS = fonte_2Xpontos.render(f"0 points/s     {Pontos_por_click} points/click", True, (255, 255, 255), (0,0,0))
+         texto_superficie_porS = fonte_2Xpontos.render(f"0 {T['per_s']}     {Pontos_por_click} {T['per_click']}", True, (255, 255, 255), (0,0,0))
     texto_rect_porS = texto_superficie_porS.get_rect(center=(200,80))
     #Automation (Item 2)
     tela.blit(texto_superficie_automacao, texto_rect_automacao)
     if Preço_2x > 1000000000000:
-        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao/1000000000)}B points", True, (255, 255, 255))
+        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao/1000000000)}B {T['pts']}", True, (255, 255, 255))
     texto_rect_automacao = texto_superficie_automacao.get_rect(center=(150,20))
     if Preço_automacao < 1000000000000 and Preço_automacao > 1000000:
-        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao/1000000)}M points", True, (255, 255, 255))
+        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao/1000000)}M {T['pts']}", True, (255, 255, 255))
     else: 
-        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao)} points", True, (255, 255, 255), (0,0,0))
+        texto_superficie_automacao = fonte_2Xpontos.render(f"{int(Preço_automacao)} {T['pts']}", True, (255, 255, 255), (0,0,0))
     texto_rect_automacao = texto_superficie_automacao.get_rect(center=(X_circulo, Y_circulo+120))
     tela.blit(texto_superficie_automacao, texto_rect_automacao)
-    texto_superficie_automacao = fonte_2Xpontos.render("Automation", True, (255, 255, 255), (0,0,0))
+    texto_superficie_automacao = fonte_2Xpontos.render(T["auto"], True, (255, 255, 255), (0,0,0))
     texto_rect_automacao = texto_superficie_automacao.get_rect(center=(X_circulo, Y_circulo + 100))
     
     X_mouse, Y_mouse = pygame.mouse.get_pos()
@@ -284,9 +347,9 @@ while rodando:
         Cor_personagem = Azul
         Pontos_automação = f"{Pontos_automação:.2f}"
         Pontos_automação = float(Pontos_automação)
-        texto_superficie_2Xpontos = fonte_2Xpontos.render(f'Automation contributed {Pontos_automação} points after {Segundos_automacao} seconds.', True, (Azul), (Branco))
+        texto_superficie_2Xpontos = fonte_2Xpontos.render(T["contrib"].format(p=Pontos_automação, s=Segundos_automacao), True, (Azul), (Branco))
         texto_rect_2Xpontos = texto_superficie_2Xpontos.get_rect(center=(230,100))
         tela.blit(texto_superficie_2Xpontos, texto_rect_2Xpontos)
     else:
         Cor_personagem = Verde
-print("Goodbye!")
+print(T["bye"])
